@@ -1,7 +1,7 @@
 const Discord = require('discord.js');
-const auth = require('auth.json');
-const fs = require('fs');
 const client = new Discord.Client();
+const fs = require('fs');
+const auth = require('./auth.json');
 client.on('ready', () => {
          console.log(`Logged in as ${client.user.tag}!`);
          });
@@ -12,19 +12,25 @@ client.on('message', msg => {
                   }
          });
 client.on('message', msg => {
-        if (msg.content === 'questionable') {
+        const args = msg.content.split(' ');
+        const command = args.shift().toLowerCase();
+        if (command === 'say') {
+                if(!args.length) {
+                        return msg.channel.send("no arguments");
+                }
                 var VC = msg.member.voiceChannel;
                 if (!VC)
                         return msg.reply("Member not in a voice channel!");
-                VC.join()
+                if (fs.existsSync("./resources/"+args[0]+".mp3")){
+                        VC.join()
                         .then(connection => {
-                                if (fs.existsSync("./resources/questionable.mp3")){
-                                const dispatcher = connection.playFile('./resources/questionable.mp3');
+                                if (fs.existsSync("./resources/"+args[0]+".mp3")){
+                                        const dispatcher = connection.playFile('./resources/'+args[0]+'.mp3');
+                                        dispatcher.on("end", end => {VC.leave()});
                                 }
-                                dispatcher.on("end", end => {VC.leave()});
                         })
                         .catch(console.error);
+                }
         }
 });
-
 client.login(auth.token);
